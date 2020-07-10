@@ -1,3 +1,9 @@
+#[cfg(feature = "reqwest-client")]
+mod reqwest;
+
+#[cfg(feature = "ureq-client")]
+mod ureq;
+
 struct Base();
 struct Breed<'a>(&'a str);
 struct SubBreed<'a>(&'a str, &'a str);
@@ -110,6 +116,15 @@ impl<'a> Request<SubBreed<'a>> {
             self.state.1,
             n
         )
+    }
+}
+
+use anyhow::{bail, Result};
+fn json_as_result(resp: serde_json::Value) -> Result<String> {
+    match resp["status"].as_str().unwrap() {
+        "error" => bail!("{}", resp["message"].as_str().unwrap()),
+        "success" => Ok(resp["message"].as_str().unwrap().to_string()),
+        _ => bail!("The doggo center looks closed"),
     }
 }
 
